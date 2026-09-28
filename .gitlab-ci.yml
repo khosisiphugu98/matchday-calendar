@@ -1,0 +1,18 @@
+# GitLab Pages: serves the calendar as a static site.
+# Pages has no backend, so the fixture snapshot is rebuilt on every pipeline run.
+# Add a daily pipeline schedule (Build > Pipeline schedules) to keep kick-off times and scores fresh.
+pages:
+  stage: deploy
+  image: python:3.12-alpine
+  script:
+    - pip install -q certifi
+    # if ESPN is unreachable, the committed snapshot is published instead
+    - python3 fetch_fixtures.py || echo "Fetch failed, publishing committed snapshot"
+    - mkdir -p public
+    - cp index.html fixtures.js public/
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "schedule"

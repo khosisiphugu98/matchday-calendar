@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matchday Calendar 26/27</title>
+<meta name="description" content="Every club and international football fixture to the end of the 2026-27 season, filtered for our DE/AT and US markets.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f3ee; --panel:#ffffff; --ink:#15181c; --muted:#646a72; --line:#e2e0d8; --soft:#ecebe4;
+  --accent:#0f7a4a; --accent-ink:#ffffff; --hot:#d2412c; --warn:#a86a00;
+  --heat:15,122,74; --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1214; --panel:#171b1f; --ink:#e9ebed; --muted:#9aa1a9; --line:#272d33; --soft:#1f2429;
+    --accent:#3fcf8a; --accent-ink:#06140d; --hot:#ff6b55; --warn:#e2a93b;
+    --heat:63,207,138; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1214; --panel:#171b1f; --ink:#e9ebed; --muted:#9aa1a9; --line:#272d33; --soft:#1f2429;
+  --accent:#3fcf8a; --accent-ink:#06140d; --hot:#ff6b55; --warn:#e2a93b;
+  --heat:63,207,138; --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif;-webkit-font-smoothing:antialiased}
+button,select,input{font:inherit;color:inherit}
+.wrap{max-width:1320px;margin:0 auto;padding:20px 16px 60px}
+h1,h2,h3,.disp{font-family:"Barlow Condensed",Inter,sans-serif;letter-spacing:.01em}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px}
+header.top h1{font-size:40px;line-height:1;margin:0;font-weight:700;text-transform:uppercase}
+header.top h1 span{color:var(--accent)}
+.sub{color:var(--muted);font-size:13px;margin-top:6px}
+.status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.dot.on{background:var(--accent);box-shadow:0 0 0 3px rgba(var(--heat),.2)}
+.dot.err{background:var(--warn)}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 11px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn:focus-visible,.chip:focus-visible,.cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* controls */
+.controls>*{min-width:0}
+.controls{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow);display:grid;gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;min-width:84px}
+.seg{display:inline-flex;flex-wrap:wrap;max-width:100%;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:6px 12px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:600}
+.chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:4px 10px 4px 8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13px}
+.chip .sw{width:9px;height:9px;border-radius:3px;background:var(--c)}
+.chip[aria-pressed="false"]{opacity:.45}
+.chip[aria-pressed="false"] .sw{background:transparent;border:1px solid var(--c)}
+.chip .n{color:var(--muted);font-size:11px}
+.grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.grp-name{font-size:11px;color:var(--muted);margin-right:2px}
+.search{border:1px solid var(--line);border-radius:9px;padding:6px 10px;background:var(--bg);min-width:200px;flex:1;max-width:320px}
+select{border:1px solid var(--line);border-radius:9px;padding:6px 8px;background:var(--bg)}
+label.tog{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:13px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:13px}
+
+/* summary tiles */
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.tile .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.tile .v{font-family:"Barlow Condensed",sans-serif;font-size:28px;font-weight:700;line-height:1.1}
+.tile .s{font-size:12px;color:var(--muted)}
+
+/* month nav */
+.mnav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0 10px;flex-wrap:wrap}
+.mnav h2{font-size:30px;margin:0;text-transform:uppercase;font-weight:700}
+.mnav .arrows{display:flex;gap:6px}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;align-items:start}
+.layout.full{grid-template-columns:minmax(0,1fr)}
+
+/* month grid */
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.dow{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;padding:2px 6px}
+.cell{position:relative;min-height:112px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 6px 5px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+.cell::before{content:"";position:absolute;inset:0;background:rgba(var(--heat),var(--h,0));pointer-events:none}
+.cell>*{position:relative}
+.cell.out{opacity:.35}
+.cell.today{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.cell.sel{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.cell .hd{display:flex;justify-content:space-between;align-items:baseline}
+.cell .num{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:18px}
+.cell .cnt{font-size:11px;color:var(--muted);font-weight:600}
+.cell .dots{display:flex;flex-wrap:wrap;gap:2px}
+.cell .dots i{width:6px;height:6px;border-radius:2px;background:var(--c)}
+.cell .ln{font-size:11px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:4px}
+.cell .ln i{flex:none;width:6px;height:6px;border-radius:2px;background:var(--c)}
+.cell .ln.top{font-weight:600}
+.cell .more{font-size:10px;color:var(--muted)}
+.kd{font-size:10px;font-weight:600;line-height:1.2;padding:2px 5px;border-radius:4px;background:var(--soft);border-left:3px solid var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--hot);display:inline-block;animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.3}}
+
+/* day panel + agenda */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+.panel .ph{padding:14px 16px 10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:1}
+.panel .ph h3{margin:0;font-size:24px;text-transform:uppercase}
+.panel .ph .s{font-size:12px;color:var(--muted)}
+.agenda{display:grid;gap:18px}
+.dayblock h3{font-size:20px;margin:0 0 6px;text-transform:uppercase;display:flex;gap:10px;align-items:baseline}
+.dayblock h3 small{font-family:Inter,sans-serif;font-size:12px;color:var(--muted);text-transform:none;font-weight:500}
+.fx{display:grid;grid-template-columns:58px minmax(0,1fr);gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);align-items:center}
+.card .fx:last-child{border-bottom:0}
+.fx .time{font-family:"Barlow Condensed",sans-serif;font-size:19px;font-weight:600;line-height:1}
+.fx .time small{display:block;font-family:Inter,sans-serif;font-size:10px;color:var(--warn);font-weight:600;margin-top:3px}
+.fx .teams{display:grid;gap:3px;min-width:0}
+.tm{display:flex;align-items:center;gap:7px;min-width:0}
+.tm img{width:18px;height:18px;object-fit:contain;flex:none}
+.tm .ph-crest{width:18px;height:18px;border-radius:50%;background:var(--soft);flex:none}
+.tm .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tm .sc{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
+.tm.win .nm{font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:11px;color:var(--muted);margin-top:3px}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:.04em;padding:1px 6px;border-radius:4px;background:var(--soft);color:var(--ink)}
+.badge i{width:7px;height:7px;border-radius:2px;background:var(--c)}
+.badge.top{background:var(--hot);color:#fff}
+.badge.nat{background:var(--ink);color:var(--bg)}
+.badge.live{background:var(--hot);color:#fff}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.kdrow{padding:8px 12px;border-bottom:1px solid var(--line);font-size:12px;display:flex;gap:8px;align-items:center;background:var(--soft)}
+.kdrow i{width:4px;align-self:stretch;border-radius:2px;background:var(--c);flex:none}
+.empty{padding:22px 16px;color:var(--muted);text-align:center}
+
+/* season heat */
+.season{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;overflow-x:auto}
+.srow{display:grid;grid-template-columns:62px repeat(31,minmax(16px,1fr));gap:3px;align-items:center;min-width:640px}
+.srow + .srow{margin-top:3px}
+.srow .ml{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:15px;text-transform:uppercase;cursor:pointer}
+.sd{aspect-ratio:1;border-radius:3px;background:var(--soft);position:relative;cursor:pointer;border:0;padding:0}
+.sd::before{content:"";position:absolute;inset:0;border-radius:3px;background:rgba(var(--heat),var(--h,0))}
+.sd.we{outline:1px solid var(--line)}
+.sd.kd::after{content:"";position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);width:60%;height:3px;border-radius:2px;background:var(--c)}
+.sd.today{box-shadow:0 0 0 2px var(--ink)}
+.sd.nil{visibility:hidden}
+.legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--muted);margin-top:12px}
+.ramp{display:inline-flex;gap:2px}
+.ramp span{width:14px;height:14px;border-radius:3px;background:rgba(var(--heat),var(--h))}
+
+.notes{margin-top:26px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.notes .card{padding:14px 16px}
+.notes h3{margin:0 0 8px;font-size:20px;text-transform:uppercase}
+.notes ul{margin:0;padding-left:18px}
+.notes li{margin:3px 0}
+.foot{margin-top:18px;font-size:12px;color:var(--muted)}
+a{color:var(--accent)}
+
+@media (max-width:1000px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .panel{position:static;max-height:none}
+  .notes{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  header.top h1{font-size:30px}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cell{min-height:58px;padding:4px}
+  .cell .ln,.cell .more,.kd{display:none}
+  .cell .num{font-size:15px}
+  .grid{gap:3px}
+  .row .lbl{min-width:0;width:100%}
+  .search{max-width:none;min-width:0;width:100%}
+  .grp{flex:1 1 100%;min-width:0}
+  .mnav h2{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Matchday <span>Calendar</span> 26/27</h1>
+      <div class="sub" id="sub">Every club and international fixture to the end of the 2026-27 season</div>
+    </div>
+    <div class="row">
+      <span class="status" id="status"><span class="dot" id="sdot"></span><span id="stxt">Snapshot</span></span>
+      <button class="btn" id="refresh" title="Pull the latest kick-off times and scores for the month on screen">Refresh live</button>
+      <button class="btn" id="ics" title="Download the filtered fixtures as a calendar file">Export .ics</button>
+      <button class="btn" id="theme" aria-label="Toggle theme">◐</button>
+    </div>
+  </header>
+
+  <section class="controls" aria-label="Filters">
+    <div class="row">
+      <span class="lbl">View</span>
+      <div class="seg" id="views"></div>
+    </div>
+    <div class="row" id="comps"></div>
+    <div class="row">
+      <span class="lbl">Refine</span>
+      <input class="search" id="q" type="search" placeholder="Team, e.g. Bayern, Arsenal, Germany">
+      <label class="tog"><input type="checkbox" id="top"> Top clashes only</label>
+      <label class="tog"><input type="checkbox" id="allfr"> All friendlies <span style="color:var(--muted)">(default: major nations)</span></label>
+      <label class="tog"><input type="checkbox" id="kds" checked> Key dates</label>
+      <select id="tz" aria-label="Time zone">
+        <option value="Europe/Berlin">Berlin / Vienna (CET)</option>
+        <option value="Europe/London">London (UK)</option>
+        <option value="America/New_York">New York (ET)</option>
+        <option value="America/Chicago">Chicago (CT)</option>
+        <option value="America/Los_Angeles">Los Angeles (PT)</option>
+        <option value="Africa/Johannesburg">Johannesburg (SAST)</option>
+      </select>
+    </div>
+  </section>
+
+  <div class="tiles" id="tiles"></div>
+
+  <div class="mnav">
+    <h2 id="mtitle"></h2>
+    <div class="arrows">
+      <button class="btn" id="prev" aria-label="Previous month">←</button>
+      <button class="btn" id="today">Today</button>
+      <button class="btn" id="next" aria-label="Next month">→</button>
+    </div>
+  </div>
+
+  <div class="layout" id="layout">
+    <main id="main"></main>
+    <aside class="panel" id="panel"></aside>
+  </div>
+
+  <section class="notes">
+    <div class="card">
+      <h3>Not scheduled yet</h3>
+      <ul id="tbd"></ul>
+    </div>
+    <div class="card">
+      <h3>How to read this</h3>
+      <ul>
+        <li><span class="badge top">TOP</span> is a clash between two big clubs, or a named derby. These are the fixtures that move search and social volume.</li>
+        <li><span class="badge nat">DE / AT / US</span> is a national team from one of our markets.</li>
+        <li><b style="color:var(--warn)">Kick-off TBC</b>: the date is set but the time is a placeholder until TV picks are announced, usually 4–6 weeks out.</li>
+        <li>Day shading shows how many of the selected fixtures fall on that day. The season view makes international breaks and winter breaks stand out as pale gaps.</li>
+      </ul>
+    </div>
+  </section>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script src="fixtures.js"></script>
+<script>
+(() => {
+const D = window.FIXTURES || {leagues:{},teams:{},fixtures:[]};
+// same-origin relay provided by serve.py; ESPN blocks direct browser calls (no CORS header)
+const API = (slug, ym) => `api/espn/${slug}/${ym}`;
+
+/* ---------- config ---------- */
+const COLORS = {
+  "ger.1":"#d20515","ger.2":"#f07c7c","ger.dfb_pokal":"#8e1b1b","aut.1":"#e4572e","sui.1":"#b5452f",
+  "eng.1":"#6c2bd9","eng.fa":"#9b72e8","eng.league_cup":"#3aa0c8",
+  "esp.1":"#ee8a12","esp.copa_del_rey":"#c26a00","ita.1":"#1e5bd6","fra.1":"#1aa3a3",
+  "uefa.champions":"#0b2a6f","uefa.europa":"#f28c00","uefa.europa.conf":"#1f9d55",
+  "uefa.nations":"#5a6b7d","uefa.euroq":"#3d4f63","fifa.friendly":"#8a94a0",
+  "usa.1":"#1d3f8f","mex.1":"#0f8a5f","concacaf.champions":"#233b5c","concacaf.nations.league":"#556b2f","concacaf.gold":"#b8860b"
+};
+// dark mode lifts the darkest league colours so they stay visible
+const DARK_LIFT = {"uefa.champions":"#5b86e5","ger.dfb_pokal":"#d95353","concacaf.champions":"#6e8fbf","uefa.euroq":"#7d93ab","usa.1":"#5d86d9"};
+const GROUPS = [["dach","Germany · Austria"],["europe","Europe's big leagues"],["uefa","UEFA clubs"],["intl","International"],["us","Americas"]];
+// competitions switched on at first load; toggle any of them with the chips
+const DEFAULT_LEAGUES = ["ger.1","ger.2","ger.dfb_pokal","aut.1","eng.1","esp.1","ita.1","uefa.champions","uefa.europa","uefa.europa.conf","uefa.nations","uefa.euroq","fifa.friendly"];
+const OUR_NATIONS = {"Germany":"DE","Austria":"AT","United States":"US"};
+const MAJOR_NATIONS = new Set(["Germany","Austria","Switzerland","United States","Mexico","Canada","England","Spain","France","Italy","Netherlands","Portugal","Belgium","Croatia","Brazil","Argentina","Uruguay","Colombia","Japan","Morocco"]);
+const BIG = {
+  "ger.1":["Bayern Munich","Borussia Dortmund","Bayer Leverkusen","RB Leipzig","Eintracht Frankfurt","VfB Stuttgart"],
+  "eng.1":["Arsenal","Chelsea","Liverpool","Manchester City","Manchester United","Tottenham Hotspur","Newcastle United","Aston Villa"],
+  "esp.1":["Real Madrid","Barcelona","Atlético Madrid","Athletic Club","Villarreal"],
+  "ita.1":["Internazionale","AC Milan","Juventus","Napoli","AS Roma","Lazio","Atalanta"],
+  "fra.1":["Paris Saint-Germain","Marseille","Lyon","AS Monaco","Lille"],
+  "aut.1":["RB Salzburg","Rapid Vienna","Austria Vienna","SK Sturm Graz","LASK Linz"],
+  "mex.1":["América","Guadalajara","Cruz Azul","Pumas UNAM","Tigres UANL","Monterrey"],
+  "usa.1":["Inter Miami CF","LA Galaxy","LAFC","Seattle Sounders FC","Columbus Crew","FC Cincinnati"],
+};
+const DERBIES = [
+  ["Borussia Dortmund","Schalke 04","Revierderby"],["Hamburg SV","Werder Bremen","Nordderby"],["FC Cologne","Borussia Mönchengladbach","Rheinderby"],
+  ["Bayern Munich","Borussia Dortmund","Der Klassiker"],["Liverpool","Everton","Merseyside derby"],["Newcastle United","Sunderland","Tyne-Wear derby"],
+  ["Arsenal","Tottenham Hotspur","North London derby"],["Manchester City","Manchester United","Manchester derby"],
+  ["Real Madrid","Barcelona","El Clásico"],["Real Madrid","Atlético Madrid","Madrid derby"],["Sevilla","Real Betis","Seville derby"],
+  ["Internazionale","AC Milan","Derby della Madonnina"],["AS Roma","Lazio","Derby della Capitale"],["Juventus","Internazionale","Derby d'Italia"],
+  ["Paris Saint-Germain","Marseille","Le Classique"],["Rapid Vienna","Austria Vienna","Wiener Derby"],
+  ["LA Galaxy","LAFC","El Tráfico"],["América","Guadalajara","Clásico Nacional"],["United States","Mexico","Rivalry"],
+  ["Germany","Netherlands","Rivalry"],["Germany","Austria","Rivalry"],["Germany","England","Rivalry"],
+];
+const BIG_ALL = new Set(Object.values(BIG).flat());
+
+/* Known dates for rounds that aren't drawn or scheduled yet. Sources: UEFA.com, DFB, The FA, EFL, MLS, Concacaf, FIFA (checked 28 Sep 2026). */
+const KEY = [
+  {d:["2026-12-01","2026-12-02"], t:"DFB-Pokal round of 16", l:"ger.dfb_pokal"},
+  {d:["2026-12-18"], t:"MLS Cup 2026 final", l:"usa.1"},
+  {d:["2027-01-09"], t:"FA Cup third round (PL clubs enter)", l:"eng.fa"},
+  {d:["2027-02-02","2027-02-03","2027-02-09","2027-02-10"], t:"DFB-Pokal quarter-finals", l:"ger.dfb_pokal"},
+  {d:["2027-02-16","2027-02-17"], t:"UCL knockout play-offs · 1st leg", l:"uefa.champions"},
+  {d:["2027-02-23","2027-02-24"], t:"UCL knockout play-offs · 2nd leg", l:"uefa.champions"},
+  {d:["2027-02-18"], t:"UEL/UECL KO play-offs · 1st leg", l:"uefa.europa", also:"uefa.europa.conf"},
+  {d:["2027-02-25"], t:"UEL/UECL KO play-offs · 2nd leg", l:"uefa.europa", also:"uefa.europa.conf"},
+  {d:["2027-03-09","2027-03-10"], t:"UCL round of 16 · 1st leg", l:"uefa.champions"},
+  {d:["2027-03-16","2027-03-17"], t:"UCL round of 16 · 2nd leg", l:"uefa.champions"},
+  {d:["2027-03-11"], t:"UEL/UECL round of 16 · 1st leg", l:"uefa.europa", also:"uefa.europa.conf"},
+  {d:["2027-03-18"], t:"UEL/UECL round of 16 · 2nd leg", l:"uefa.europa", also:"uefa.europa.conf"},
+  {d:["2027-03-21"], t:"Carabao Cup final · Wembley (reported)", l:"eng.league_cup"},
+  {r:["2027-03-22","2027-03-30"], t:"Concacaf Nations League Finals", l:"concacaf.nations.league"},
+  {r:["2027-03-25","2027-03-30"], t:"Nations League quarter-finals + Euro 2028 qualifiers begin", l:"uefa.nations", also:"uefa.euroq"},
+  {d:["2027-04-06","2027-04-07"], t:"UCL quarter-finals · 1st leg", l:"uefa.champions"},
+  {d:["2027-04-13","2027-04-14"], t:"UCL quarter-finals · 2nd leg", l:"uefa.champions"},
+  {d:["2027-04-08"], t:"UEL/UECL quarter-finals · 1st leg", l:"uefa.europa", also:"uefa.europa.conf"},
+  {d:["2027-04-15"], t:"UEL/UECL quarter-finals · 2nd leg", l:"uefa.europa", also:"uefa.europa.conf"},
+  {d:["2027-04-20","2027-04-21"], t:"DFB-Pokal semi-finals", l:"ger.dfb_pokal"},
+  {d:["2027-04-27","2027-04-28"], t:"UCL semi-finals · 1st leg", l:"uefa.champions"},
+  {d:["2027-04-29"], t:"UEL/UECL semi-finals · 1st leg", l:"uefa.europa", also:"uefa.europa.conf"},
+  {d:["2027-05-04","2027-05-05"], t:"UCL semi-finals · 2nd leg", l:"uefa.champions"},
+  {d:["2027-05-06"], t:"UEL/UECL semi-finals · 2nd leg", l:"uefa.europa", also:"uefa.europa.conf"},
+  {d:["2027-05-17"], t:"Austrian Bundesliga final day", l:"aut.1"},
+  {d:["2027-05-22"], t:"FA Cup final · Wembley", l:"eng.fa"},
+  {d:["2027-05-26"], t:"Europa League final · Frankfurt", l:"uefa.europa", star:1},
+  {d:["2027-05-29"], t:"DFB-Pokal final · Berlin, 20:00", l:"ger.dfb_pokal", star:1},
+  {d:["2027-06-02"], t:"Conference League final · Istanbul", l:"uefa.europa.conf"},
+  {d:["2027-06-05"], t:"Champions League final · Madrid", l:"uefa.champions", star:1},
+  {d:["2027-06-09","2027-06-10"], t:"Nations League Finals · semi-finals", l:"uefa.nations"},
+  {d:["2027-06-13"], t:"Nations League final", l:"uefa.nations", star:1},
+  {r:["2027-06-19","2027-07-11"], t:"Concacaf Gold Cup 2027", l:"concacaf.gold"},
+];
+const TBD = [
+  ["uefa.champions","UCL knockout pairings: league phase ends 27 Jan, draw after that. Knockout dates are shown on the calendar as key dates."],
+  ["uefa.euroq","Euro 2028 qualifying: group draw after the Nations League league phase (late Nov/Dec 2026). Groups of five start in March 2027, groups of four in September 2027."],
+  ["aut.1","Austrian Bundesliga championship and relegation rounds: fixtures follow the regular season (ends Feb/Mar), then run to 17 May. Points carry over in full this season."],
+  ["eng.fa","FA Cup from the third round (9 Jan) and Carabao Cup from the quarter-finals: the draws aren't made yet."],
+  ["esp.copa_del_rey","Copa del Rey: later rounds are drawn round by round. The final is in April 2027 in Seville (date TBC)."],
+  ["usa.1","MLS 2026 playoffs (Nov–Dec, final 18 Dec). The 2027 Sprint Season (14 games, Feb–Apr, MLS Cup in May) and the 2027-28 season kicking off in July have no fixtures published yet."],
+  ["mex.1","Liga MX Clausura 2027 (Jan–May): schedule not published yet."],
+  ["fifa.friendly","Friendlies for the March and June 2027 windows are announced a few weeks ahead."],
+  ["concacaf.gold","Concacaf Gold Cup 2027 runs 19 Jun – 11 Jul. The host and fixtures aren't announced yet."],
+  [null,"FIFA Women's World Cup, Brazil: 24 Jun – 25 Jul 2027 (not tracked in this calendar)."],
+];
+
+/* ---------- state ---------- */
+const now = new Date();
+const S = {
+  view:"month", tz:"Europe/Berlin", q:"", top:false, allfr:false, kds:true,
+  leagues:new Set(DEFAULT_LEAGUES), month:null, day:null,
+};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const T = id => D.teams[id] || {n:"TBD",a:"",lg:""};
+const isDark = () => document.documentElement.dataset.theme === "dark" ||
+  (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
+const col = l => (isDark() && DARK_LIFT[l]) || COLORS[l] || "#888";
+const L = l => D.leagues[l] || {name:l, short:l.toUpperCase(), group:"intl"};
+
+/* ---------- derived fixture fields ---------- */
+const dayFmt = {};
+function dayKey(date, tz = S.tz){
+  dayFmt[tz] ||= new Intl.DateTimeFormat("en-CA",{timeZone:tz,year:"numeric",month:"2-digit",day:"2-digit"});
+  return dayFmt[tz].format(date);
+}
+function timeStr(date){ return date.toLocaleTimeString("en-GB",{timeZone:S.tz,hour:"2-digit",minute:"2-digit"}); }
+
+function tagFixture(f){
+  f.t = new Date(f.d);
+  const h = T(f.h).n, a = T(f.a).n;
+  const der = DERBIES.find(([x,y]) => (x===h&&y===a)||(x===a&&y===h));
+  f.derby = der ? der[2] : null;
+  const bigSet = BIG[f.l] ? new Set(BIG[f.l]) : BIG_ALL;
+  f.top = !!der || (bigSet.has(h) && bigSet.has(a)) ||
+          (/uefa\.(champions|europa)$/.test(f.l) && BIG_ALL.has(h) && BIG_ALL.has(a));
+  f.nat = OUR_NATIONS[h] || OUR_NATIONS[a] || null;
+  f.major = MAJOR_NATIONS.has(h) || MAJOR_NATIONS.has(a);
+}
+// Placeholder kick-offs: ESPN flags some (timeValid=false); others show as a whole round at one identical time.
+function markProvisional(){
+  const LEAGUE_LIKE = new Set(Object.keys(D.leagues).filter(l => !/pokal|cup|copa|fa$|friendly|nations|euroq|gold|champions$|europa/.test(l)));
+  const wk = {};
+  for (const f of D.fixtures){
+    f.prov = f.s === "pre" && f.tv === false;
+    if (!LEAGUE_LIKE.has(f.l) || f.s !== "pre") continue;
+    const d = new Date(f.d); const mon = new Date(d); mon.setUTCDate(d.getUTCDate() - ((d.getUTCDay()+6)%7));
+    (wk[f.l+"|"+mon.toISOString().slice(0,10)] ||= []).push(f);
+  }
+  for (const list of Object.values(wk)){
+    if (list.length >= 4 && new Set(list.map(f => f.d.slice(11,16))).size === 1) list.forEach(f => f.prov = true);
+  }
+}
+D.fixtures.forEach(tagFixture); markProvisional();
+
+/* ---------- filtering ---------- */
+function visible(f){
+  if (!S.leagues.has(f.l)) return false;
+  if (f.l === "fifa.friendly" && !S.allfr && !f.major) return false;
+  if (S.top && !f.top && !f.nat) return false;
+  if (S.q){
+    const q = S.q.toLowerCase();
+    if (!T(f.h).n.toLowerCase().includes(q) && !T(f.a).n.toLowerCase().includes(q)) return false;
+  }
+  return true;
+}
+let byDay = {};
+function index(){
+  byDay = {};
+  for (const f of D.fixtures) if (visible(f)) (byDay[dayKey(f.t)] ||= []).push(f);
+  for (const k in byDay) byDay[k].sort((a,b) => a.t - b.t || (b.top - a.top));
+}
+function keyDatesOn(day){
+  if (!S.kds || S.q) return [];
+  return KEY.filter(k => (S.leagues.has(k.l) || (k.also && S.leagues.has(k.also))) &&
+    (k.d ? k.d.includes(day) : (day >= k.r[0] && day <= k.r[1])));
+}
+
+/* ---------- rendering helpers ---------- */
+const MONTHS = ["2026-09","2026-10","2026-11","2026-12","2027-01","2027-02","2027-03","2027-04","2027-05","2027-06","2027-07"];
+const mLabel = ym => new Date(ym+"-15T12:00Z").toLocaleDateString("en-GB",{month:"long",year:"numeric",timeZone:"UTC"});
+const dLabel = day => new Date(day+"T12:00Z").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",timeZone:"UTC"});
+const todayKey = () => dayKey(new Date());
+
+function crest(t){ return t.lg ? `<img src="${esc(t.lg)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ph-crest'}))">` : `<span class="ph-crest"></span>`; }
+function fxHTML(f){
+  const h = T(f.h), a = T(f.a), lg = L(f.l);
+  const done = f.s === "post", live = f.s === "in";
+  const hs = +f.hs, as = +f.as;
+  const time = live ? `<span class="live-dot"></span>` : done ? "FT" : timeStr(f.t);
+  const badges = [
+    `<span class="badge" style="--c:${col(f.l)}"><i></i>${esc(lg.short)}</span>`,
+    live ? `<span class="badge live">LIVE ${esc(f.sd)}</span>` : "",
+    f.top ? `<span class="badge top">${esc(f.derby || "TOP")}</span>` : "",
+    f.nat ? `<span class="badge nat">${f.nat}</span>` : "",
+  ].join("");
+  const bits = [esc(f.r), esc(f.v), f.b && f.b.length ? "📺 " + esc(f.b.join(", ")) : ""].filter(Boolean).join(" · ");
+  return `<div class="fx">
+    <div class="time">${time}${f.prov ? "<small>Kick-off TBC</small>" : ""}</div>
+    <div class="teams">
+      <div class="tm ${done && hs>as ? "win":""}">${crest(h)}<span class="nm">${esc(h.n)}</span>${done||live ? `<span class="sc">${esc(f.hs)}</span>`:""}</div>
+      <div class="tm ${done && as>hs ? "win":""}">${crest(a)}<span class="nm">${esc(a.n)}</span>${done||live ? `<span class="sc">${esc(f.as)}</span>`:""}</div>
+      <div class="meta">${badges}${bits ? `<span>${bits}</span>`:""}</div>
+    </div></div>`;
+}
+function dayCard(day){
+  const list = byDay[day] || [], kds = keyDatesOn(day);
+  if (!list.length && !kds.length) return `<div class="empty">No fixtures in your selection.</div>`;
+  return `<div class="card">${kds.map(k => `<div class="kdrow" style="--c:${col(k.l)}"><i></i><b>${k.star?"★ ":""}${esc(k.t)}</b><span style="color:var(--muted)">fixtures TBD</span></div>`).join("")}${list.map(fxHTML).join("")}</div>`;
+}
+
+/* ---------- views ---------- */
+function renderMonth(){
+  const ym = S.month, [y,m] = ym.split("-").map(Number);
+  const first = new Date(Date.UTC(y,m-1,1)), start = new Date(first);
+  start.setUTCDate(1 - ((first.getUTCDay()+6)%7));
+  const days = []; for (let d = new Date(start); days.length < 42; d.setUTCDate(d.getUTCDate()+1)) days.push(d.toISOString().slice(0,10));
+  while (days.length > 35 && days.slice(-7).every(k => !k.startsWith(ym))) days.splice(-7);
+  const max = Math.max(1, ...days.filter(k=>k.startsWith(ym)).map(k => (byDay[k]||[]).length));
+  const tk = todayKey();
+  let html = `<div class="grid">${["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d=>`<div class="dow">${d}</div>`).join("")}`;
+  for (const k of days){
+    const list = byDay[k] || [], kds = keyDatesOn(k);
+    const lines = [...list].sort((a,b) => (b.top+!!b.nat) - (a.top+!!a.nat) || a.t-b.t).slice(0,3);
+    const leagues = [...new Set(list.map(f=>f.l))];
+    const live = list.some(f=>f.s==="in");
+    html += `<button class="cell ${k.startsWith(ym)?"":"out"} ${k===tk?"today":""} ${k===S.day?"sel":""}" style="--h:${list.length ? (0.06 + 0.34*list.length/max).toFixed(3) : 0}" data-day="${k}" aria-label="${dLabel(k)}: ${list.length} fixtures">
+      <div class="hd"><span class="num">${+k.slice(8)}</span><span class="cnt">${live?'<span class="live-dot"></span> ':""}${list.length||""}</span></div>
+      ${kds.slice(0,2).map(x=>`<div class="kd" style="--c:${col(x.l)}">${x.star?"★ ":""}${esc(x.t)}</div>`).join("")}
+      ${lines.map(f=>`<div class="ln ${f.top||f.nat?"top":""}" style="--c:${col(f.l)}"><i></i>${esc(T(f.h).a||T(f.h).n)}–${esc(T(f.a).a||T(f.a).n)}</div>`).join("")}
+      ${list.length>3?`<div class="more">+${list.length-3} more</div>`:""}
+      <div class="dots">${leagues.map(l=>`<i style="--c:${col(l)}" title="${esc(L(l).name)}"></i>`).join("")}</div>
+    </button>`;
+  }
+  $("#main").innerHTML = html + `</div>`;
+}
+function renderAgenda(){
+  const keys = Object.keys(byDay).filter(k => k.startsWith(S.month));
+  KEY.forEach(k => (k.d||[]).forEach(d => { if (d.startsWith(S.month) && keyDatesOn(d).length && !keys.includes(d)) keys.push(d); }));
+  keys.sort();
+  $("#main").innerHTML = keys.length ? `<div class="agenda">${keys.map(k => `<section class="dayblock" id="d-${k}">
+      <h3>${dLabel(k)} <small>${(byDay[k]||[]).length} fixtures</small></h3>${dayCard(k)}</section>`).join("")}</div>`
+    : `<div class="card empty">Nothing in ${mLabel(S.month)} for this selection.</div>`;
+}
+function renderSeason(){
+  let max = 1; for (const k in byDay) max = Math.max(max, byDay[k].length);
+  const tk = todayKey();
+  let html = `<div class="season"><div class="srow"><span></span>${Array.from({length:31},(_,i)=>`<span style="font-size:10px;color:var(--muted);text-align:center">${i+1}</span>`).join("")}</div>`;
+  for (const ym of MONTHS){
+    const [y,m] = ym.split("-").map(Number), n = new Date(Date.UTC(y,m,0)).getUTCDate();
+    html += `<div class="srow"><span class="ml" data-month="${ym}">${mLabel(ym).slice(0,3)} ’${String(y).slice(2)}</span>`;
+    for (let d=1; d<=31; d++){
+      if (d>n){ html += `<span class="sd nil"></span>`; continue; }
+      const k = `${ym}-${String(d).padStart(2,"0")}`, c = (byDay[k]||[]).length, kd = keyDatesOn(k)[0];
+      const dow = new Date(k+"T12:00Z").getUTCDay();
+      html += `<button class="sd ${dow===0||dow===6?"we":""} ${kd?"kd":""} ${k===tk?"today":""}" style="--h:${c?(0.1+0.8*Math.sqrt(c/max)).toFixed(3):0};${kd?`--c:${col(kd.l)}`:""}" data-day="${k}" title="${dLabel(k)} · ${c} fixtures${kd?" · "+kd.t:""}"></button>`;
+    }
+    html += `</div>`;
+  }
+  html += `<div class="legend"><span>Fewer</span><span class="ramp">${[.1,.3,.5,.7,.9].map(h=>`<span style="--h:${h}"></span>`).join("")}</span><span>More fixtures per day</span>
+    <span>▁ coloured underline = key date (knockout round, final)</span><span>Outlined = weekend</span></div></div>`;
+  $("#main").innerHTML = html;
+}
+function renderPanel(){
+  const p = $("#panel");
+  if (S.view !== "month"){ p.hidden = true; $("#layout").classList.add("full"); return; }
+  p.hidden = false; $("#layout").classList.remove("full");
+  const day = S.day && S.day.startsWith(S.month) ? S.day : null;
+  if (!day){
+    // default panel: this month's headline fixtures
+    const tops = Object.keys(byDay).filter(k=>k.startsWith(S.month)).flatMap(k=>byDay[k]).filter(f=>f.top||f.nat).sort((a,b)=>a.t-b.t);
+    p.innerHTML = `<div class="ph"><h3>Headline fixtures</h3><div class="s">${mLabel(S.month)} · top clashes and our national teams · pick a day to see everything</div></div>
+      ${tops.length ? `<div class="card" style="border:0;border-radius:0">${tops.map(f=>`<div style="font-size:11px;color:var(--muted);padding:8px 12px 0">${new Date(f.t).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",timeZone:S.tz})}</div>${fxHTML(f)}`).join("")}</div>` : `<div class="empty">No headline fixtures this month in your selection.</div>`}`;
+    return;
+  }
+  const list = byDay[day] || [];
+  p.innerHTML = `<div class="ph"><h3>${dLabel(day)}</h3><div class="s">${list.length} fixtures · ${list.filter(f=>f.top).length} top clashes · times in ${$("#tz").selectedOptions[0].text}</div></div>${dayCard(day).replace('class="card"','class="card" style="border:0;border-radius:0"')}`;
+}
+function renderTiles(){
+  const season = S.view === "season", months = season ? MONTHS : [S.month];
+  const keys = Object.keys(byDay).filter(k => months.includes(k.slice(0,7)));
+  const all = keys.flatMap(k=>byDay[k]);
+  const busiest = keys.sort((a,b)=>byDay[b].length-byDay[a].length)[0];
+  // weekends with no club fixtures in the selection = international or winter breaks
+  let quiet = 0;
+  for (const ym of months){
+    const [y,m] = ym.split("-").map(Number), n = new Date(Date.UTC(y,m,0)).getUTCDate();
+    for (let d=1; d<=n; d++){
+      const k = `${ym}-${String(d).padStart(2,"0")}`; if (new Date(k+"T12:00Z").getUTCDay()!==6) continue;
+      const next = new Date(Date.UTC(y,m-1,d+1)).toISOString().slice(0,10);
+      if (![...(byDay[k]||[]),...(byDay[next]||[])].some(f=>L(f.l).group!=="intl")) quiet++;
+    }
+  }
+  const nat = all.filter(f=>f.nat).length;
+  const when = season ? "Sep 2026 – Jul 2027" : mLabel(S.month);
+  const bFmt = season ? {weekday:"short",day:"numeric",month:"short",timeZone:"UTC"} : {weekday:"short",day:"numeric",timeZone:"UTC"};
+  $("#tiles").innerHTML = `
+    <div class="tile"><div class="k">Fixtures</div><div class="v">${all.length.toLocaleString()}</div><div class="s">${when} · selection</div></div>
+    <div class="tile"><div class="k">Top clashes</div><div class="v">${all.filter(f=>f.top).length}</div><div class="s">${nat} with DE / AT / US national teams</div></div>
+    <div class="tile"><div class="k">Busiest day</div><div class="v">${busiest ? new Date(busiest+"T12:00Z").toLocaleDateString("en-GB",bFmt) : "–"}</div><div class="s">${busiest ? byDay[busiest].length+" fixtures" : "no fixtures"}</div></div>
+    <div class="tile"><div class="k">Club-free weekends</div><div class="v">${quiet}</div><div class="s">${season ? "includes summer, when schedules are thin" : "international or winter break"}</div></div>`;
+}
+function render(){
+  index();
+  $("#mtitle").textContent = S.view === "season" ? "Season 2026-27" : mLabel(S.month);
+  document.querySelector(".mnav .arrows").style.visibility = S.view === "season" ? "hidden" : "visible";
+  renderTiles();
+  ({month:renderMonth, agenda:renderAgenda, season:renderSeason})[S.view]();
+  renderPanel();
+  $("#tbd").innerHTML = TBD.filter(([l]) => !l || S.leagues.has(l)).map(([l,t]) => `<li>${l?`<span class="badge" style="--c:${col(l)}"><i></i>${esc(L(l).short)}</span> `:""}${esc(t)}</li>`).join("");
+  saveHash();
+}
+
+/* ---------- controls ---------- */
+function buildControls(){
+  $("#views").innerHTML = [["month","Month"],["agenda","Agenda"],["season","Season"]].map(([k,t])=>`<button data-view="${k}" aria-pressed="${S.view===k}">${t}</button>`).join("");
+  const counts = {}; D.fixtures.forEach(f => counts[f.l] = (counts[f.l]||0)+1);
+  $("#comps").innerHTML = `<span class="lbl">Competitions</span>` + GROUPS.map(([g,name]) => {
+    const ls = Object.keys(D.leagues).filter(l => L(l).group===g && (counts[l] || KEY.some(k=>k.l===l||k.also===l)));
+    return ls.length ? `<span class="grp"><span class="grp-name">${name}</span>${ls.map(l=>`<button class="chip" style="--c:${col(l)}" data-league="${l}" aria-pressed="${S.leagues.has(l)}"><span class="sw"></span>${esc(L(l).name)}<span class="n">${counts[l]||"TBD"}</span></button>`).join("")}</span>` : "";
+  }).join("");
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("button,[data-month]"); if (!b) return;
+  if (b.dataset.view){ S.view=b.dataset.view; buildControls(); render(); }
+  else if (b.dataset.league){ const l=b.dataset.league; S.leagues.has(l)?S.leagues.delete(l):S.leagues.add(l); buildControls(); render(); }
+  else if (b.dataset.day){ S.day=b.dataset.day; S.month=S.day.slice(0,7); if (S.view==="season") S.view="month"; buildControls(); render(); if (innerWidth<1000) $("#panel").scrollIntoView({behavior:"smooth"}); liveMaybe(); }
+  else if (b.dataset.month){ S.month=b.dataset.month; S.view="month"; S.day=null; buildControls(); render(); liveMaybe(); }
+});
+function shiftMonth(n){ const i = Math.min(MONTHS.length-1, Math.max(0, MONTHS.indexOf(S.month)+n)); S.month = MONTHS[i]; S.day=null; render(); liveMaybe(); }
+$("#prev").onclick = () => shiftMonth(-1);
+$("#next").onclick = () => shiftMonth(1);
+$("#today").onclick = () => { const t=todayKey(); S.month = MONTHS.includes(t.slice(0,7)) ? t.slice(0,7) : MONTHS[0]; S.day = t; if (S.view==="season"){S.view="month";buildControls();} render(); liveMaybe(); };
+let qt; $("#q").oninput = e => { clearTimeout(qt); qt = setTimeout(()=>{ S.q=e.target.value.trim(); render(); },150); };
+$("#top").onchange = e => { S.top=e.target.checked; render(); };
+$("#allfr").onchange = e => { S.allfr=e.target.checked; render(); };
+$("#kds").onchange = e => { S.kds=e.target.checked; render(); };
+$("#tz").onchange = e => { S.tz=e.target.value; render(); };
+$("#theme").onclick = () => { const r=document.documentElement; r.dataset.theme = isDark() ? "light" : "dark"; try{localStorage.setItem("mc-theme",r.dataset.theme)}catch(_){} buildControls(); render(); };
+document.addEventListener("keydown", e => { if (e.target.matches("input,select")) return; if (e.key==="ArrowLeft") shiftMonth(-1); if (e.key==="ArrowRight") shiftMonth(1); });
+
+/* ---------- shareable URL state ---------- */
+function saveHash(){
+  const p = new URLSearchParams({v:S.view, m:S.month, tz:S.tz});
+  p.set("l",[...S.leagues].join(","));
+  if (S.q) p.set("q",S.q); if (S.top) p.set("top","1"); if (S.allfr) p.set("fr","1"); if (S.day) p.set("d",S.day);
+  history.replaceState(null,"","#"+p.toString());
+}
+function loadHash(){
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (p.has("l")) S.leagues=new Set(p.get("l").split(",").filter(Boolean));
+  if (["month","agenda","season"].includes(p.get("v"))) S.view=p.get("v");
+  if (MONTHS.includes(p.get("m"))) S.month=p.get("m");
+  if (p.get("tz")) S.tz=p.get("tz");
+  S.q=p.get("q")||""; S.top=p.get("top")==="1"; S.allfr=p.get("fr")==="1"; S.day=p.get("d")||null;
+  $("#q").value=S.q; $("#top").checked=S.top; $("#allfr").checked=S.allfr; $("#tz").value=S.tz;
+}
+
+/* ---------- live refresh from ESPN (the month on screen) ---------- */
+function normalise(e, slug){
+  const c = e.competitions && e.competitions[0]; if (!c) return null;
+  const side = {}; c.competitors.forEach(t => side[t.homeAway] = t);
+  if (!side.home || !side.away) return null;
+  for (const t of [side.home, side.away]){ const tm=t.team; if (!D.teams[tm.id]) D.teams[tm.id] = {n:tm.displayName||tm.name, a:tm.abbreviation||"", lg:tm.logo||""}; }
+  const st = e.status.type;
+  const note = (c.altGameNote||"").includes(", ") ? c.altGameNote.split(", ").slice(1).join(", ") : "";
+  return {id:e.id, l:slug, d:e.date, tv:c.timeValid!==false, h:side.home.team.id, a:side.away.team.id,
+    hs: st.state!=="pre" ? side.home.score : null, as: st.state!=="pre" ? side.away.score : null,
+    s:st.state, sd:st.shortDetail||"", r:note,
+    v:[c.venue&&c.venue.fullName, c.venue&&c.venue.address&&c.venue.address.city].filter(Boolean).join(", "),
+    b:[...new Set((c.broadcasts||[]).flatMap(b=>b.names||[]))].sort()};
+}
+const fetched = {}; let busy = false, liveTimer = null, noProxy = location.protocol === "file:";
+function setStatus(kind, txt){ $("#sdot").className = "dot " + (kind||""); $("#stxt").textContent = txt; }
+async function liveRefresh(force){
+  if (busy || !S.month || noProxy) return; busy = true;
+  const ym = S.month.replace("-",""), slugs = [...S.leagues].filter(l => D.leagues[l]);
+  const todo = slugs.filter(l => force || !fetched[l+ym] || Date.now()-fetched[l+ym] > 120000);
+  if (!todo.length){ busy=false; return; }
+  setStatus("", `Refreshing ${mLabel(S.month)}…`);
+  const byId = new Map(D.fixtures.map((f,i)=>[f.id,i]));
+  let ok = 0, fail = 0, changed = 0;
+  await Promise.all(todo.map(async l => {
+    try{
+      const r = await fetch(API(l, ym));
+      if (r.status === 404) { noProxy = true; throw 0; }
+      if (!r.ok) throw 0;
+      const j = await r.json();
+      for (const e of j.events||[]){
+        const f = normalise(e, l); if (!f) continue; tagFixture(f);
+        if (byId.has(f.id)) { const old = D.fixtures[byId.get(f.id)]; if (old.d!==f.d||old.s!==f.s||old.hs!==f.hs||old.as!==f.as) changed++; D.fixtures[byId.get(f.id)] = f; }
+        else { byId.set(f.id, D.fixtures.length); D.fixtures.push(f); changed++; }
+      }
+      fetched[l+ym] = Date.now(); ok++;
+    } catch(_){ fail++; }
+  }));
+  busy = false;
+  markProvisional();
+  if (ok){ setStatus("on", `Live · ${mLabel(S.month)} updated ${new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}${changed?` · ${changed} changes`:""}`); render(); }
+  else if (noProxy) { setStatus("", `Snapshot · ${new Date(D.generated).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}`); $("#refresh").hidden = true; }
+  else setStatus("err", `Live feed unreachable · showing snapshot from ${new Date(D.generated).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}`);
+  // keep polling while anything on screen is in play
+  clearTimeout(liveTimer);
+  if (Object.keys(byDay).some(k=>k.startsWith(S.month) && byDay[k].some(f=>f.s==="in"))) liveTimer = setTimeout(()=>liveRefresh(true), 60000);
+}
+let lm; function liveMaybe(){ clearTimeout(lm); lm = setTimeout(()=>liveRefresh(false), 400); }
+$("#refresh").onclick = () => liveRefresh(true);
+
+/* ---------- .ics export ---------- */
+$("#ics").onclick = () => {
+  index();
+  const stamp = d => d.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+  const lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Matchday Calendar//26-27//EN","CALSCALE:GREGORIAN","X-WR-CALNAME:Matchday Calendar 26/27"];
+  const fold = s => s.replace(/[,;\\]/g, m => "\\"+m);
+  for (const f of Object.values(byDay).flat()){
+    const end = new Date(f.t.getTime() + 115*60000);
+    lines.push("BEGIN:VEVENT", `UID:espn-${f.id}@matchday-calendar`, `DTSTAMP:${stamp(new Date())}`, `DTSTART:${stamp(f.t)}`, `DTEND:${stamp(end)}`,
+      `SUMMARY:${fold(`${T(f.h).n} v ${T(f.a).n} (${L(f.l).short})`)}`,
+      `DESCRIPTION:${fold([L(f.l).name, f.r, f.prov?"Kick-off time TBC":"", f.top?"Top clash":""].filter(Boolean).join(" · "))}`,
+      f.v ? `LOCATION:${fold(f.v)}` : "", "END:VEVENT");
+  }
+  lines.push("END:VCALENDAR");
+  const blob = new Blob([lines.filter(Boolean).join("\r\n")], {type:"text/calendar"});
+  const a = Object.assign(document.createElement("a"), {href:URL.createObjectURL(blob), download:`fixtures-2026-27.ics`});
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+};
+
+/* ---------- boot ---------- */
+try{ const t = localStorage.getItem("mc-theme"); if (t) document.documentElement.dataset.theme = t; }catch(_){}
+const t0 = todayKey().slice(0,7);
+S.month = MONTHS.includes(t0) ? t0 : MONTHS[0];
+S.day = todayKey();
+loadHash();
+$("#sub").textContent = `${D.fixtures.length.toLocaleString()} fixtures across ${Object.keys(D.leagues).length} competitions · Sep 2026 – Jul 2027 · snapshot ${new Date(D.generated).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}`;
+$("#foot").innerHTML = `Fixture data: ESPN public soccer feed. When run via <code>serve.py</code>, the month on screen refreshes live. The full snapshot comes from <code>fetch_fixtures.py</code>. Key dates for rounds that aren't drawn yet are from UEFA, the DFB, The FA, the EFL, MLS and Concacaf, as of 28 Sep 2026. Kick-off times shown as TBC are placeholders.`;
+setStatus("", `Snapshot · ${new Date(D.generated).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}`);
+if (noProxy) $("#refresh").hidden = true;
+buildControls(); render(); liveMaybe();
+})();
+</script>
+</body>
+</html>
