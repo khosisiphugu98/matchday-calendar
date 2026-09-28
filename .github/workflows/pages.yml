@@ -12,6 +12,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: write   # keepalive below
 
 concurrency:
   group: pages
@@ -29,8 +30,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -q certifi
-      # if ESPN is unreachable, the committed snapshot is published instead
-      - run: python3 fetch_fixtures.py || echo "Fetch failed, publishing committed snapshot"
+      # start from what's live now (not the committed snapshot, which only changes on manual pushes),
+      # so a failed or partial fetch keeps the latest good data instead of rolling back weeks
+      - run: curl -fsS "https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/fixtures.js" -o fixtures.js || echo "::warning::Couldn't download the live snapshot; using the committed one"
+      - run: python3 fetch_fixtures.py || echo "::warning::Fetch failed; republishing the current snapshot unchanged"
       - run: mkdir -p public && cp index.html fixtures.js public/ && touch public/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
@@ -38,3 +41,8 @@ jobs:
           path: public
       - id: deployment
         uses: actions/deploy-pages@v4
+      # GitHub disables scheduled workflows after 60 days without repo activity; re-enabling keeps the hourly refresh alive
+      - if: github.event_name == 'schedule'
+        run: gh api -X PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/pages.yml/enable" || echo "::warning::keepalive failed"
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -7,7 +7,7 @@ pages:
   script:
     - pip install -q certifi
     # if ESPN is unreachable, the committed snapshot is published instead
-    - python3 fetch_fixtures.py || echo "Fetch failed, publishing committed snapshot"
+    - python3 fetch_fixtures.py || echo "WARNING - fetch failed; publishing the committed snapshot"
     - mkdir -p public
     - cp index.html fixtures.js public/
   artifacts:

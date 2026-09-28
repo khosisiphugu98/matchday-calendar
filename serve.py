@@ -10,12 +10,14 @@ directly. This server hands out the static files and relays
 proxy (e.g. GitLab Pages) the page quietly falls back to fixtures.js.
 """
 import http.server, json, os, re, subprocess, sys, time, urllib.request, ssl
+from fetch_fixtures import LEAGUES
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8790
 ROOT = os.path.dirname(os.path.abspath(__file__))
 API = "https://site.api.espn.com/apis/site/v2/sports/soccer/{}/scoreboard?dates={}&limit=1000"
 ROUTE = re.compile(r"^/api/espn/([a-z0-9._]+)/(\d{6})$")
 CACHE = {}
+PUBLIC = {"/", "/index.html", "/fixtures.js", "/matchday-calendar.html"}  # nothing else in the folder is served
 
 try:
     import certifi
@@ -36,10 +38,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*a, directory=ROOT, **k)
 
     def do_GET(self):
-        m = ROUTE.match(self.path.split("?")[0])
+        path = self.path.split("?")[0]
+        m = ROUTE.match(path)
         if not m:
+            if path not in PUBLIC:
+                return self.send_error(404)
             return super().do_GET()
         key = m.groups()
+        if key[0] not in LEAGUES:
+            return self.send_error(404)
         hit = CACHE.get(key)
         try:
             if not hit or time.time() - hit[0] > 60:
@@ -54,9 +61,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def log_message(self, fmt, *args):
-        if "/api/" not in (args[0] if args else ""):
+        if "/api/" not in (str(args[0]) if args else ""):
             super().log_message(fmt, *args)
 
 if __name__ == "__main__":
     print(f"Matchday Calendar on http://localhost:{PORT}")
-    http.server.ThreadingHTTPServer(("", PORT), Handler).serve_forever()
+    # localhost only: nothing on the same Wi-Fi can reach it
+    http.server.ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
