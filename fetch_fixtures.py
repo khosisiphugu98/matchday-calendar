@@ -50,7 +50,7 @@ def months():
         y, m = (y + 1, 1) if m == 12 else (y, m + 1)
 
 def get(url):
-    req = urllib.request.Request(url, headers={"Accept-Encoding": "gzip", "User-Agent": "fixtures-calendar"})
+    req = urllib.request.Request(url, headers={"Accept-Encoding": "gzip"})
     for attempt in range(3):
         try:
             if CTX is None:  # no certifi: let curl use the system keychain

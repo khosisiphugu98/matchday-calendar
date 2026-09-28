@@ -27,7 +27,7 @@ def fetch(url):
     if CTX is None:  # python.org builds lack a CA bundle; curl uses the system keychain
         return subprocess.run(["curl", "-s", "--compressed", "-m", "30", "-f", url],
                               capture_output=True, check=True).stdout
-    with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "fixtures-calendar"}),
+    with urllib.request.urlopen(url,
                                 timeout=30, context=CTX) as r:
         return r.read()
 
